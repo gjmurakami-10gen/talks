@@ -1,0 +1,438 @@
+<!doctype html>  
+<html lang="en">
+	
+	<head>
+		<meta charset="utf-8">
+		
+		<title>BCON - BSON C Object Notation</title>
+
+		<meta name="description" content="JSON-like (or BSON-like) initializers in C">
+		<meta name="author" content="Gary J. Murakami">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		
+		<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+		
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="css/theme/default.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<script>
+			// If the query includes 'print-pdf' we'll use the PDF print sheet
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+	
+	<body>
+		
+		<div class="reveal">
+
+			<!-- Used to fade in a background when a specific slide state is reached -->
+			<div class="state-background"></div>
+			
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+<section>
+    <h1>BCON</h1>
+    <h3>BSON C Object Notation</h3>
+    <br/>
+    <p>Gary J. Murakami, Ph.D.</p>
+    <p>gary.murakami@10gen.com</p>
+    <br/>
+    <p><a href="https://github.com/mongodb/mongo-c-driver">mongo-c-driver</a></p>
+    <br/>
+    <p>Driver Days</p>
+    <p>Tuesday, September 18, 2012</p>
+</section>
+
+<section>
+    <h2>The Problem</h2>
+    <pre><code contenteditable>
+    { "BSON" : [ "awesome", 5.05, 1986 ] }
+    </code></pre>
+    <h3>C Driver</h3>
+    <pre><code contenteditable>
+    bson bs[1];
+    bson_init( bs );
+    bson_append_start_array( bs, "BSON" );
+    bson_append_string( bs, "0", "awesome" );
+    bson_append_double( bs, "1", 5.05 );
+    bson_append_int( bs, "2", 1986 );
+    bson_append_finish_array( bs );
+    bson_finish( bs );
+    </code></pre>
+    <ul>
+        <li>laborious</li>
+        <li>unreadable</li>
+        <li>unmaintainable</li>
+        <li>not fun</li>
+    </ul>
+</section>
+
+<section>
+    <h2>The Solution</h2>
+    <pre><code contenteditable>
+    { "BSON" : [ "awesome", 5.05, 1986 ] }
+    </code></pre>
+    <br/>
+    <h3>BCON: BSON C Object Notation</h3>
+    <pre><code contenteditable>
+    bcon bc[] = { "BSON", "[", "awesome", BF(5.05), BI(1986), "]", "." };
+    </code></pre>
+    <br/>
+    <ul>
+        <li>C feature set</li>
+        <ul>
+            <li>no nested polymorphic arrays or dictionaries</li>
+        </ul>
+        <li>C initializer</li>
+        <ul>
+            <li>compiled data, not code</li>
+        </ul>
+    </ul>
+</section>
+
+<section>
+    <h2>Comparison</h2>
+    <pre><code contenteditable>
+    { "BSON" : [ "awesome", 5.05, 1986 ] }
+    </code></pre>
+    <h3>BCON</h3>
+    <pre><code contenteditable>
+    bson b[1];
+    bcon bc[] = { "BSON", "[", "awesome", BF(5.05), BI(1986), "]", "." };
+    bson_from_bson( b, bc );
+    </code></pre>
+    <h3>C Driver</h3>
+    <pre><code contenteditable>
+    bson bs[1];
+    bson_init( bs );
+    bson_append_start_array( bs, "BSON" );
+    bson_append_string( bs, "0", "awesome" );
+    bson_append_double( bs, "1", 5.05 );
+    bson_append_int( bs, "2", 1986 );
+    bson_append_finish_array( bs );
+    bson_finish( bs );
+    </code></pre>
+</section>
+
+<section>
+    <h2>More Examples</h2>
+    <pre><code contenteditable>
+    bcon goodbye[] = { "hello", "world", "goodbye", "world", "." };
+
+    bcon contact_info[] = {
+        "firstName", "John",
+        "lastName" , "Smith",
+        "age"      , BI(25),
+        "address"  ,
+        "{",
+            "streetAddress", "21 2nd Street",
+            "city"         , "New York",
+            "state"        , "NY",
+            "postalCode"   , "10021",
+        "}",
+        "phoneNumber",
+        "[",
+            "{",
+                "type"  , "home",
+                "number", "212 555-1234",
+            "}",
+            "{",
+                "type"  , "fax",
+                "number", "646 555-4567",
+            "}",
+        "]",
+        BEND
+    };
+    </code></pre>
+</section>
+
+<section>
+    <h2>Implementation - C Union</h2>
+    <pre><code contenteditable>
+    typedef union bcon {
+      char *s;       /**< 02 e_name string    Macro BS(v) - UTF-8 string */ /* must be first to be default */
+      double f;      /**< 01 e_name double    Macro BF(v) - Floating point */
+      char *o;       /**< 07 e_name (byte*12) Macro BO(v) - ObjectId */
+      bson_bool_t b; /**< 08 e_name 00        Macro BB(v) - Boolean "false"
+                          08 e_name 01        Macro BB(v) - Boolean "true" */
+      time_t t;      /**< 09 e_name int64     Macro BT(v) - UTC datetime */
+      char *v;       /**< 0A e_name           Macro BNULL - Null value */
+      char *x;       /**< 0E e_name string    Macro BX(v) - Symbol */
+      int i;         /**< 10 e_name int32     Macro BI(v) - 32-bit Integer */
+      long l;        /**< 12 e_name int64     Macro BL(v) - 64-bit Integer */
+    } bcon;
+    </code></pre>
+    <ul>
+        <li>choose char* cstring as the default type</li>
+        <li>first union field is the default</li>
+        <li>document is C array of bcon union elements</li>
+        <li>keys, values, documents, BSON arrays</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Special cstrings</h2>
+    <ul>
+        <li>use "." or BEND macro for termination</li>
+        <li>use "{" and "}" for document</li>
+        <li>use "[" and "]" for array</li>
+        <li>use special cstrings for type specification</li>
+    </ul>
+    <pre><code contenteditable>
+    /** BCON internal 01 double Floating point type-specifier */
+    #define BTF ":_f:"
+    /** BCON internal 02 char* string type-specifier */
+    #define BTS ":_s:"
+    /** BCON internal 07 char* ObjectId type-specifier */
+    #define BTO ":_o:"
+    /** BCON internal 08 int Boolean type-specifier */
+    #define BTB ":_b:"
+    /** BCON internal 09 int64 UTC datetime type-specifier */
+    #define BTT ":_t:"
+    /** BCON internal 0A Null type-specifier */
+    #define BTN ":_v:"
+    /** BCON internal 0E char* Symbol type-specifier */
+    #define BTX ":_x:"
+    /** BCON internal 10 int32 64-bit Integer type-specifier */
+    #define BTI ":_i:"
+    /** BCON internal 12 int64 64-bit Integer type-specifier */
+    #define BTL ":_l:"
+    </code></pre>
+</section>
+
+<section>
+    <h2>Value Macros</h2>
+    <pre><code contenteditable>
+    /** BCON 01 double Floating point value */
+    #define BF(v) BTF, { .f = (v) }
+    /** BCON 02 char* string value */
+    #define BS(v) BTS, { .s = (v) }
+    /** BCON 07 char* ObjectId value */
+    #define BO(v) BTO, { .o = (v) }
+    /** BCON 08 int Boolean value */
+    #define BB(v) BTB, { .b = (v) }
+    /** BCON 09 int64 UTC datetime value */
+    #define BT(v) BTT, { .t = (v) }
+    /** BCON 0A Null value */
+    #define BNULL BTN, { .v = ("") }
+    /** BCON 0E char* Symbol value */
+    #define BX(v) BTX, { .x = (v) }
+    /** BCON 10 int32 32-bit Integer value */
+    #define BI(v) BTI, { .i = (v) }
+    /** BCON 12 int64 64-bit Integer value */
+    #define BL(v) BTL, { .l = (v) }
+    </code></pre>
+    <p>value macros expand to two bcon elements</p>
+    <p>clarity and conciseness</p>
+</section>
+
+<section>
+    <h2>Reference Interpolation</h2>
+    <ol>
+        <li>modify values</li>
+        <li>call bson_from_bson to interpolate values</li>
+    </ol>
+    <pre><code contenteditable>
+    bson b[1];
+    char name[] = "pi";
+    double value = 3.14159;
+    bcon bc[] = { "name", BRS(name), "value", BRF(&value), BEND };
+    bson_from_bcon( b, bc ); /* generates { name: "pi", value: 3.14159 } */
+    if (verbose) bson_print( b );
+    strcpy(name, "e");
+    value = 2.71828;
+    bson_from_bcon( b, bc ); /* generates { name: "e", value: 2.71828 } */
+    if (verbose) bson_print( b );
+    </code></pre>
+    <ul>
+        <li>& precedes macro value types, no & before C array types</li>
+        <li>bcon fields, e.g., double *Rf;</li>
+        <li>type-specifiers, e.g., #define BTRF ":Rf:"</li>
+        <li>value macros, e.g., #define BRF(v) BTRF, { .Rf = (v) }</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Pointer Interpolation</h2>
+    <ol>
+        <li>set pointer to null to skip key-value interpolation</li>
+        <li>or set pointer to new value locations</li>
+        <li>call bson_from_bson to interpolate values</li>
+    </ol>
+    <pre><code contenteditable>
+    bson b[1];
+    char name[] = "pi";
+    char new_name[] = "log(0)";
+    char **pname = (char**)&name;
+    double value = 3.14159;
+    double *pvalue = &value;
+    bcon bc[] = { "name", BPS(&pname), "value", BPF(&pvalue), BEND };
+    bson_from_bcon( b, bc ); /* generates { name: "pi", value: 3.14159 } */
+    pname = (char**)&new_name;
+    pvalue = 0;
+    bson_from_bcon( b, bc ); /* generates { name: "log(0)" } */
+    </code></pre>
+    <ul>
+        <li>& precedes all macro pointer arguments</li>
+        <li>bcon fields, e.g., double **Pf;</li>
+        <li>type-specifiers, e.g., #define BTPF ":Pf:"</li>
+        <li>value macros, e.g., #define BPF(v) BTPF, { .Pf = (v) }</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Types and Interpolation Notes</h2>
+    <ul>
+        <li>full spectrum of base types, document, and array</li>
+        <li>"direct" value, reference interpolation, and pointer interpolation</li>
+        <li>C array reference semantics</li>
+            <ul>
+                <li>completeness/consistency vs. redundancy</li>
+                <ul>
+                    <li>BS, BD, BA, BO, BX <--> BRS, BRD, BRA, BRO, BRX</li>
+                </ul>
+            </ul>
+    </ul>
+    <br/>
+    <br/>
+        <h3>Not Implemented</h3>
+        <pre><code contenteditable>
+        /*   05  e_name  binary              Binary data */
+        /*   0B  e_name  cstring cstring     Regular expression */
+        /*   0D  e_name  string              JavaScript code */
+        /*   0F  e_name  code_w_s            JavaScript code w/ scope  */
+        /*   11  e_name  int64               Timestamp */
+        /*   FF  e_name                      Min key */
+        /*   7F  e_name                      Max key */
+        </code></pre>
+        <p>opportunity</p>
+</section>
+
+<section>
+    <h2>BCON Functions</h2>
+    <pre><code contenteditable>
+    bcon_error_t bson_append_bcon(bson *b, const bcon *bc);
+
+    bcon_error_t bson_from_bcon( bson *b, const bcon *bc );
+
+    void bcon_print( const bcon *bc );
+    </code></pre>
+    <br/>
+    <h3>BSON generation</h3>
+    <ul>
+        <li>Finite State Machine</li>
+            <ul>
+                <li>5 states, 8 lexical token types, 16 transitions</li>
+                <li>augmented with stacks, not recursion</li>
+            </ul>
+    </ul>
+    <br/>
+    <br/>
+    <h3>Performance</h3>
+    <p>1.1 to 1.2 times</p>
+    <p>compiler optimization -O3 - important</p>
+</section>
+
+<section>
+    <h2>Future Write Concern Improvement</h2>
+    <pre><code contenteditable>
+    typedef struct mongo_write_concern {
+        int w;            /**< Number of total replica write copies to complete including the primary. */
+        int wtimeout;     /**< Number of milliseconds before replication timeout. */
+        int j;            /**< If non-zero, block until the journal sync. */
+        int fsync;        /**< Same a j with journaling enabled; otherwise, call fsync. */
+        const char *mode; /**< Either "majority" or a getlasterrormode. Overrides w value. */
+
+        bson *cmd; /**< The BSON object representing the getlasterror command. */
+    } mongo_write_concern;
+
+    void mongo_write_concern_init( mongo_write_concern *write_concern );
+
+    int mongo_write_concern_finish( mongo_write_concern *write_concern );
+
+    void mongo_write_concern_destroy( mongo_write_concern *write_concern );
+
+    void mongo_set_write_concern( mongo *conn, mongo_write_concern *write_concern );
+
+    int mongo_insert( mongo *conn, const char *ns, const bson *data, mongo_write_concern *custom_write_concern );
+
+    int mongo_insert_batch( mongo *conn, const char *ns, const bson **data, int num, mongo_write_concern *custom_write_concern, int flags );
+
+    int mongo_update( mongo *conn, const char *ns, const bson *cond, const bson *op, int flags, mongo_write_concern *custom_write_concern );
+
+    int mongo_remove( mongo *conn, const char *ns, const bson *cond, mongo_write_concern *custom_write_concern );
+    </code></pre>
+    <ul>
+        <li>no tag support</li>
+        <li>additional code and documentation</li>
+    </ul>
+    <br/>
+    <br/>
+    <p>replace with bson/bcon to eliminate all of the above</p>
+</section>
+
+<section>
+    <h2>Discussion</h2>
+    <ul>
+        <li>Extensions</li>
+        <ul>
+            <li>function interpolation experiment - too complex?</li>
+        </ul>
+        <li>Feedback</li>
+        <li>Other Drivers/Languages?</li>
+    </ul>
+</section>
+
+			</div>
+
+			<!-- The navigational controls UI -->
+			<aside class="controls">
+				<a class="left" href="#">&#x25C4;</a>
+				<a class="right" href="#">&#x25BA;</a>
+				<a class="up" href="#">&#x25B2;</a>
+				<a class="down" href="#">&#x25BC;</a>
+			</aside>
+
+			<!-- Presentation progress bar -->
+			<div class="progress"><span></span></div>
+			
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+			
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/linear(2d)
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/highlight.js', async: true, callback: function() { window.hljs.initHighlightingOnLoad(); } },
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'lib/js/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'lib/js/data-markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'socket.io/socket.io.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+					{ src: 'plugin/speakernotes/client.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+				]
+			});
+			
+		</script>
+
+	</body>
+</html>

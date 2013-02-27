@@ -1,0 +1,127 @@
+.reveal pre {
+    margin-bottom: 30px;
+}
+
+.reveal pre > code > span.code-highlight {
+    background-color: #d3d3d3;
+}
+
+.reveal pre > code > span.inline-block {
+    display: inline-block;
+    width: 100%;
+}
+
+.reveal h1 span.crud {
+    opacity: 0.5;
+}
+
+h1 span.logo-mongodb {
+    height: 300px;
+    width: 100%;
+}
+
+section[data-state="title"] h1 {
+    font-size: 1.8em;
+    text-align: right;
+}
+
+section[data-state="title"] p.bio {
+    display: inline-block;
+    margin-top: 1.5em;
+    padding-left: 4em;
+    height: 3em;
+    background-image: url("../../common/img/jmikola_cartoon.png");
+    background-position: left;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+@media screen {
+    .library .state-background {
+        background-position: top;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .library .state-background {
+        background-image: url("../img/library.jpeg");
+    }
+
+    section.bg {
+        background: rgba(0,0,0,0.66);
+    }
+}
+
+section div.node-3 {
+    clear: both;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+section div.node-3 > div.node {
+    background-color: #1d1f21;
+    box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
+    display: inline-block;
+    text-align: center;
+    width: 25%;
+    vertical-align: top;
+}
+
+section div.node-3 > div.arrow {
+    display: inline-block;
+    font-size: 1em;
+    height: 1em;
+    line-height: 0.8em;
+    margin: 0;
+    text-align: center;
+    width: 5%;
+}
+
+section div.node-3 > div.node > span.label {
+    display: block;
+}
+
+section div.node-3 > div.node > span.label > sub {
+    font-size: 0.75em;
+}
+
+section div.node-3 > div.node > ul {
+    list-style: none;
+    margin: 0 0 0.25em;
+}
+
+section div.node-3 > div.node > ul > li {
+    font-size: 0.66em;
+    line-height: 1.2em;
+}
+
+section li.embedded-object {
+    color:red;
+}
+
+section li.embedded-object > ul {
+    list-style: none;
+    margin: 0 0 0.25em 1em;
+}
+
+section.ul-2col > ul {
+    width: 100%;
+}
+
+section.ul-2col > ul > li {
+    float: left;
+    margin-top: 1em;
+    width: 50%;
+}
+
+section.ul-2col > ul > li:nth-child(odd) {
+    clear: left;
+}
+
+section[data-state="final"] ul { margin-top: 2em; }
+section[data-state="final"] h3 { margin-top: 1.5em; }
+
+section[data-state="photo-credits"] ul li {
+    font-size: 0.5em;
+    line-height: 1.2em;
+}
