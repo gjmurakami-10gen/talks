@@ -23,7 +23,10 @@
                 <section data-state="title">
                     <h1><span class="logo-mongodb"></span> Schema Design Workshop</h1>
 
-                    <p class="bio">Jeremy Mikola<br><a href="http://twitter.com/jmikola">@jmikola</a></p>
+                    <p class="bio">Gary J. Murakami, Ph.D.<br/>
+                        10gen (the MongoDB company)<br/>
+                        <a href="http://twitter.com/GaryMurakami">@GaryMurakami</a>
+                    </p>
                 </section>
 
                 <section>
@@ -1084,7 +1087,6 @@ db.recommendations.count({ book: ObjectId("…") });</code></pre>
 }</code></pre>
 
                         * Flexible and space-efficient
-                        * Additional query needed for non-ID lookups
                     </section>
 
                     <section data-markdown>
@@ -1246,7 +1248,7 @@ db.rec_ts.update(
                         * Not a hash map
                         * Optimized to scan quickly
 
-                        <br>
+                        <br/>
                         <div class="node-3">
                             <div class="node">
                                 <span class="label">minute</span>
@@ -1262,7 +1264,7 @@ db.rec_ts.update(
 
                         We can skip sub-documents
 
-                        <br>
+                        <br/>
                         <div class="node-3">
                             <div class="node">
                                 <span class="label">hour<sub>0</sub></span>
@@ -1659,7 +1661,7 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
 
                         Users can upload images for books
 
-                        <br>
+                        <br/>
                         <div class="node-3">
                             <div class="node">
                                 <span class="label">images</span>
@@ -1669,7 +1671,7 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
                                 </ul>
                             </div>
                         </div>
-                        <br>
+                        <br/>
 
                         The collection will be sharded by `image_id`.
 
@@ -1714,6 +1716,48 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
                         * It's about your application.
                         * It's about your data and how it's used.
                         * It's about the entire lifetime of your application.
+                        </section>
+                        <section data-markdown>
+                        ## Over-generalizations
+                        ### Normalization/Denormalization
+
+                        1. Normalization reduces redundancy<br/>
+                            following the good principle of Don't Repeat Yourself (DRY)
+
+                        2. Denormalization introduces redundancy<br/>
+                            following common practices such as caching for performance
+                        <br/><br/>
+                        ### The needs of your application
+
+                        * High consistency - yes: link, no: embed
+
+                        * High read performance - yes: embed, no: link
+
+                        * High write performance - yes: link, no: embed
+
+                        * High scaling - yes: link, no: embed
+                        </section>
+                        <section data-markdown>
+                        ## Over-generalizations
+                        ### Relationships
+
+                        * one-to-one - yes: embed, no: ...
+
+                        * one-to-many - yes: embed, no: ...
+
+                        * many-to-many - yes: link, no: ...
+
+                        ### Consistency techniques
+
+                        * background or nightly process for eventual consistency
+
+                        * look-aside cache for immediate consistency, etc.
+
+                        ### The bad news
+                        There's no formula that requires no thought.
+
+                        ### The good news
+                        Flexible document schema to match your application.
                     </section>
 
                     <section data-markdown data-state="final">
