@@ -1707,24 +1707,26 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
 
                 <section>
                     <section data-markdown>
-                        # Summary
-
-                        * Schema design is different in MongoDB.
-                        * Basic data design principles apply.
-                        * It's about your application.
-                        * It's about your data and how it's used.
-                        * It's about the entire lifetime of your application.
-                        </section>
-                        <section data-markdown>
                         ## Over-generalizations
+
                         ### Normalization/Denormalization
 
                         1. Normalization reduces redundancy<br/>
-                            following the good principle of Don't Repeat Yourself (DRY)
+
+                            good principle of Don't Repeat Yourself (DRY)
 
                         2. Denormalization introduces redundancy<br/>
-                            following common practices such as caching for performance
-                        <br/><br/>
+
+                            common practices such as caching for performance
+
+                        ### Consistency techniques
+
+                        * background or nightly process for eventual consistency
+
+                        * look-aside cache for immediate consistency, etc.
+                    </section>
+                    <section data-markdown>
+                        ## Over-generalizations
                         ### The needs of your application
 
                         * High consistency - yes: link, no: embed
@@ -1734,8 +1736,8 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
                         * High write performance - yes: link, no: embed
 
                         * High scaling - yes: link, no: embed
-                        </section>
-                        <section data-markdown>
+                    </section>
+                    <section data-markdown>
                         ## Over-generalizations
                         ### Relationships
 
@@ -1744,20 +1746,25 @@ db.books.save({ _id: 50, title: "Of Mice and Men" });</code></pre>
                         * one-to-many - yes: embed, no: ...
 
                         * many-to-many - yes: link, no: ...
-
-                        ### Consistency techniques
-
-                        * background or nightly process for eventual consistency
-
-                        * look-aside cache for immediate consistency, etc.
+                    </section>
+                    <section data-markdown>
+                        ## Over-generalizations
 
                         ### The bad news
-                        There's no formula that requires no thought.
+                        There is no magic formula (that requires no thought).
 
                         ### The good news
                         Flexible document schema to match your application.
                     </section>
+                    <section data-markdown>
+                        # Summary
 
+                        * Schema design is different in MongoDB.
+                        * Basic data design principles apply.
+                        * It's about your application.
+                        * It's about your data and how it's used.
+                        * It's about the entire lifetime of your application.
+                    </section>
                     <section data-markdown data-state="final">
                         # Thanks!
 
