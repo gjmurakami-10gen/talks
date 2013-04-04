@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta content="text/html; charset=ISO-8859-1"
+      http-equiv="Content-Type">
+    <title>Call/Operation Cost in CPU Ticks</title>
+  </head>
+  <style type="text/css">
+      table, th, td {
+      //border: 1px solid black;
+      }
+      td {
+          width: 120px;
+          margin: 0px 0px;
+          text-align:center
+      }
+  </style>
+  <body>
+    <meta http-equiv="content-type" content="text/html;
+      charset=ISO-8859-1">
+    <h1>Programming Efficiency Concerns</h1>
+    <p>Even experienced programmers need a reminder about the cost of system calls in terms of CPU ticks.
+    </p>
+    <p><a
+href="https://github.com/mongodb/mongo-c-driver/blob/8fa5db9600860c60bfcbe6c2e24d3d1645ef04e1/src/mongo.c#L326">mongo-c-driver
+        - mongo_read_response()</a><br>
+    </p>
+    <p>
+    The above sample has several flaws in function mongo_read_response.
+    </p>
+    <ol>
+        <li></li>
+    </ol>
+    <h1>Call/Operation Cost in CPU Ticks</h1>
+
+
+    <table>
+        <tr><th>Operation</th><th>Measured-Rounded</th></tr>
+        <tr><td>branch/loop</td><td>0</td></tr>
+        <tr><td>intXor</td><td>0</td></tr>
+        <tr><td>function call</td><td>1</td></tr>
+        <tr><td>fread|fwrite</td><td>50</td></tr>
+        <tr><td>malloc+free</td><td>400</td></tr>
+        <tr><td>read|write</td><td>2,500</td></tr>
+        <tr><td>recv|send</td><td>5,000</td></tr>
+        <tr><td>fork+wait|system</td><td>300,000</td></tr>
+    </table>
+
+    <h2>Graphs</h1>
+    <p><a
+href="call_report_macminimid2011.html">Intel Sandy Bridge
+        2.3ghz - Mac mini Mid 2011 - Core i5</a><br>
+    </p>
+    <p>&nbsp;&nbsp;&nbsp; <a
+href="call_report_macminimid2011.js">call_report_macpromid2010.js</a><br>
+    </p>
+    <p><a
+href="call_report_macpromid2010.html">Intel Westmere
+        2.7ghz - MacPro Mid 2010 - 2 x 6-Core Xeon</a><br>
+    </p>
+    <p>&nbsp;&nbsp;&nbsp; <a
+href="call_report_macpromid2010.js">call_report_macpromid2010.js</a><br>
+    </p>
+    <p><a
+href="call_report_macbookpro17.html">Intel Penryn
+        3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo</a><br>
+    </p>
+    <p>&nbsp;&nbsp;&nbsp; <a
+href="call_report_macbookpro17.js">call_report_macbookpro17.js</a><br>
+    </p>
+    <p>
+      <meta http-equiv="content-type" content="text/html;
+        charset=ISO-8859-1">
+      <a
+href="call_report_hackintoshcore2quad.html">Intel Merom
+        2.4ghz - Mac Pro Early 2008 - Core 2 Quad (Hackintosh)</a><br>
+    </p>
+    <p>&nbsp;&nbsp;&nbsp; <a
+href="call_report_hackintoshcore2quad.js">call_report_hackintoshcore2quad.js</a><br>
+    </p>
+    <h2>Comparison</h1>
+    <p><a
+href="call_report_table.html">Comparison Table</a><br>
+    </p>
+    <p><a
+href="http://www.realworldtech.com/sandy-bridge/4/">Sandy Bridge - Instruction Decode and uop Cache</a><br>
+    </p>
+    <h2>mongo-performance</h1>
+    <p><a
+href="https://github.com/mongodb/mongo-performance/blob/dev/cxx/tests/test_call.cpp">test_call.cpp</a><br>
+    </p>
+
+  </body>
+</html>

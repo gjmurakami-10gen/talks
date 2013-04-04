@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Call/Operation Cost in CPU Ticks</title>
+    <link href="layout.css" rel="stylesheet" type="text/css">
+    <!--[if lte IE 8]>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="call_report_macminimid2011.js"></script>
+    <script language="javascript" type="text/javascript" src="call_report_macpromid2010.js"></script>
+    <script language="javascript" type="text/javascript" src="call_report_macbookpro17.js"></script>
+    <script language="javascript" type="text/javascript" src="call_report_hackintoshcore2quad.js"></script>
+</head>
+<style type="text/css">
+table, th, td {
+    //border: 1px solid black;
+}
+td {
+    width: 120px;
+    margin: 0px 0px;
+    text-align:center
+}
+</style>
+<body>
+<h1>Call/Operation Cost in CPU Ticks</h1>
+
+<p id="sysinfo"></p>
+<p id="label"></p>
+
+<div id="placeholder"></div>
+
+<script type="text/javascript">
+    $(function () {
+
+        function human(n) {
+            var s = ['E-3', '', 'k', 'm', 'g', 't', 'p'];
+            var e = Math.floor(Math.log(n) / Math.log(1000));
+            return (n / Math.pow(1000, Math.floor(e))).toFixed(1)  + s[e+1];
+        }
+
+        report = cpu_report[0].report;
+        report.sort(function (a, b) {
+            return a.user_system.ops.average - b.user_system.ops.average;
+        });
+        var html = new Array;
+        html.push("<table>\n");
+        html.push("<tr>\n");
+        html.push("<th>call/op</th>");
+        for (var j = 0; j < cpu_report.length; j++) {
+            var sysinfo = cpu_report[j].sysinfo;
+            html.push("<th>" + sysinfo.cputypename + "<br/>" + sysinfo.cpufamilyname + "<br/>" + human(sysinfo.cpufrequency) + "hz<br/>" + sysinfo.modelname + "</th>");
+        }
+        html.push("</tr>\n");
+        for (var i = 0; i < report.length; i++) {
+            var title = report[i].title;
+            html.push("<tr>");
+            html.push("<td>" + title + "</td>");
+            for (var j = 0; j < cpu_report.length; j++) {
+                for(var k = 0; k < report.length; k++) {
+                    var cpufrequency = cpu_report[j].sysinfo.cpufrequency;
+                    var element = cpu_report[j].report[k];
+                    if (element.title != title) continue;
+                    var ops = element.user_system.ops.average;
+                    var ticks = cpufrequency / ops;
+                    html.push("<td title=\"" + human(ops) + " ops/s\">" + human(ticks) + "</td>");
+                }
+            }
+            html.push("</tr>\n");
+        }
+        html.push("</table>\n");
+        $("#placeholder").html(html.join(""));
+    });
+</script>
+
+</body>
+</html>

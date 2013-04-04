@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Call/Operation Cost in CPU Ticks</title>
+    <link href="layout.css" rel="stylesheet" type="text/css">
+    <!--[if lte IE 8]>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="call_report_macminimid2011.js"></script>
+</head>
+<body>
+<h1>Call/Operation Cost in CPU Ticks</h1>
+
+<p id="sysinfo"></p>
+<p id="label"></p>
+
+<div id="placeholder" style="width:900px;height:600px"></div>
+
+<script type="text/javascript">
+    $(function () {
+
+        function human(n) {
+            var s = ['E-3', '', 'k', 'm', 'g', 't', 'p'];
+            var e = Math.floor(Math.log(n) / Math.log(1000));
+            return (n / Math.pow(1000, Math.floor(e))).toFixed(1)  + s[e+1];
+        }
+
+        $("#sysinfo").html(sysinfo.cputypename + ' ' + sysinfo.cpufamilyname + ' ' + human(sysinfo.cpufrequency) + 'hz - ' + sysinfo.modelname);
+        $("#label").html(report[0].label);
+
+        report.sort(function (a, b) {
+            return a.user_system.ops.average - b.user_system.ops.average;
+        });
+        var intData = [], doubleData = [], callData = []; yticks = [];
+        for (var i = 0; i < report.length; i++) {
+            var element = report[i];
+            var ops = element.user_system.ops.average;
+            var ticks = sysinfo.cpufrequency / ops;
+            if (element.title.match(/^int/))
+                intData.push([ticks, i, element.title, ops]);
+            else if (element.title.match(/^double/))
+                doubleData.push([ticks, i, element.title, ops]);
+            else
+                callData.push([ticks, i, element.title, ops]);
+            yticks.push([i+0.5, element.title]);
+        }
+        $.plot(
+                $("#placeholder"),
+                [
+                    {
+                        data: intData,
+                        bars: { horizontal: true, show: true },
+                        label: 'int op - ticks'
+                    },
+                    {
+                        data: doubleData,
+                        bars: { horizontal: true, show: true },
+                        label: 'double op - ticks'
+                    },
+                    {
+                        data: callData,
+                        bars: { horizontal: true, show: true },
+                        label: 'call op - ticks'
+                    }
+                ],
+                {
+                    xaxis: {
+                        ticks: [1, 10, 100, 1000, 10000, 100000, 100000],
+                        transform: function (v) {
+                            return Math.log(v + 0.0001);
+                            /*move away from zero*/
+                        },
+                        inverseTransform: function (v) {
+                            return Math.exp(v);
+                        },
+                        min: 0.5,
+                        max: 10000000,
+                        tickDecimals: 0
+                    },
+                    yaxis: {
+                        ticks: yticks,
+                        max: report.length
+                    },
+                    grid: {
+                        hoverable: true
+                    }
+                }
+        );
+
+        function showTooltip(x, y, contents) {
+            $('<div id="tooltip">' + contents + '</div>').css({
+                position: 'absolute',
+                display: 'none',
+                top: y + 5,
+                left: x + 5,
+                border: '1px solid #fdd',
+                padding: '2px',
+                'background-color': '#fee',
+                opacity: 0.80
+            }).appendTo("body").fadeIn(200);
+        }
+
+        var previousPoint = null;
+        $("#placeholder").bind("plothover", function (event, pos, item) {
+            if (true || $("#enableTooltip:checked").length > 0) {
+                if (item) {
+                    if (previousPoint != item.dataIndex) {
+                        previousPoint = item.dataIndex;
+                        $("#tooltip").remove();
+                        var x = item.datapoint[0].toFixed(2),
+                            y = item.datapoint[1].toFixed(2);
+                        var data = item.series.data[item.dataIndex];
+                        showTooltip(item.pageX, item.pageY,
+                            human(data[0]) +  ' ticks (' + human(data[3]) + ' ops/s)');
+                    }
+                }
+                else {
+                    $("#tooltip").remove();
+                    previousPoint = null;
+                }
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>
