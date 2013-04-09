@@ -1,94 +1,237 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-  <head>
-    <meta content="text/html; charset=ISO-8859-1"
-      http-equiv="Content-Type">
+<head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type"/>
     <title>Call/Operation Cost in CPU Ticks</title>
-  </head>
-  <style type="text/css">
-      table, th, td {
-      //border: 1px solid black;
-      }
-      td {
-          width: 120px;
-          margin: 0px 0px;
-          text-align:center
-      }
-  </style>
-  <body>
-    <meta http-equiv="content-type" content="text/html;
-      charset=ISO-8859-1">
-    <h1>Programming Efficiency Concerns</h1>
-    <p>Even experienced programmers need a reminder about the cost of system calls in terms of CPU ticks.
-    </p>
-    <p><a
-href="https://github.com/mongodb/mongo-c-driver/blob/8fa5db9600860c60bfcbe6c2e24d3d1645ef04e1/src/mongo.c#L326">mongo-c-driver
-        - mongo_read_response()</a><br>
-    </p>
-    <p>
+</head>
+<style type="text/css">
+    table, th, td {
+    // border : 1 px solid black;
+    }
+
+    td {
+        width: 120px;
+        margin: 0px 0px;
+        text-align: center
+    }
+</style>
+<body>
+
+<img src="call_ops_graph.png" alt="Call/Operations Cost in CPU Ticks" style="float: right; width: 500px; height: 400px;" title="Please see section 'Graphs' for links to readable graphs">
+
+<h1>Programming Efficiency Concerns</h1>
+
+<p>Even experienced programmers need a reminder about the cost of system calls.
+</p>
+
+<h2>Call/Operation Cost in CPU Ticks</h2>
+
+<p>
+These rounded numbers express the relative cost of operations and calls in CPU ticks.
+Please see the graphs below for actual measured numbers.
+</p>
+
+<table style="background-color: lightyellow;">
+    <tr>
+        <th style="width: 160px;">Operation</th>
+        <th style="width: 160px;">Measured-Rounded</th>
+    </tr>
+    <tr>
+        <td>branch / loop</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>intXor</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>function call</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>fread | fwrite</td>
+        <td>50</td>
+    </tr>
+    <tr>
+        <td>malloc + free</td>
+        <td>400</td>
+    </tr>
+    <tr>
+        <td>read | write</td>
+        <td>2,500</td>
+    </tr>
+    <tr>
+        <td>recv | send</td>
+        <td>5,000</td>
+    </tr>
+    <tr>
+        <td>fork + wait | system</td>
+        <td>300,000</td>
+    </tr>
+</table>
+
+<ol>
+    <li>
+        Shell (fork + wait | system) commands are <em>really expensive</em>.
+        Use them only for convenience where performance is not an issue.
+    </li>
+    <li>
+        Socket calls are <em>very expensive</em>  - minimize them to one per message.
+    </li>
+    <li>
+        Mallocs are <em>expensive</em> - minimize them.
+        Resource (buffer) pooling is highly recommended.
+    </li>
+    <li>
+        Buffered IO can be a big win.
+    </li>
+    <li>
+        Function calls and loops are inexpensive on a modern processor.
+    </li>
+</ol>
+
+<p>
+Profiling is recommended for performance tuning - see also
+<a href="http://valgrind.org/docs/manual/cg-manual.html">cachegrind</a>
+and
+<a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a>.
+</p>
+
+<h2>Real world example problems in the C driver</h2>
+
+<p>
+    <a href="https://github.com/mongodb/mongo-c-driver/blob/8fa5db9600860c60bfcbe6c2e24d3d1645ef04e1/src/mongo.c#L326">
+    mongo-c-driver - mongo_read_response()</a>
+</p>
+
+<p>
     The above sample has several flaws in function mongo_read_response.
-    </p>
-    <ol>
-        <li></li>
-    </ol>
-    <h1>Call/Operation Cost in CPU Ticks</h1>
+</p>
+
+<ol>
+    <li>
+        Socket-read-call return values are not checked for two occurrences.
+
+        <p>
+            Socket timeout are missed, the function continues with the wire protocol out-of-sync,
+            resulting in garbage data, and the users program crashes.
+            If the error code is checked and an error returned from the function,
+            then the user can take action like closing and reconnecting.
+        </p>
+    </li>
+    <li>
+        There are three socket read calls which should be reduced to the minimum of one.
+
+        <p>
+            Socket calls are expensive, on the order of 5000 CPU ticks as seen in the table below,
+            the most expensive system call that is commonly invoked.
+            In the example above, the first two socket reads can be easily combined into one read,
+            and the data can be copied if needed with close to no cost relative to the socket read cost.
+        </p>
+
+        <p>
+            It's most probable that the MongoDB server will send the complete response as a single send.
+            It's most probable that the driver can get the complete response in a single recv.
+            A simple solution would be to do single recv request into a buffer of max_message_size.
+            A more sophisticated solution would be to use elastic buffers.
+            Do a first recv to the current buffer size.
+            From the message header, you now have the length that you need to know,
+            and you can grow the buffer and recv the remainder of the message only if needed.
+        </p>
+
+        <p>
+            If the server sends more than one response as a single send
+            and if a single recv gets more than one response,
+            then the next obvious solution is to use stream input/output.
+            Investigate fdopen and remember dup and flush(es) are probably needed,
+            or you can roll your own stream IO.
+            If you write your BSON decoder to use stream IO, you may even avoid intermediate buffers.
+            Multithreading and large bulk 16MB documents introduce complications,
+            but I'm certain that smart people can come up with smart solutions - that's why we are needed.
+        </p>
+
+        <p>
+            The cost of socket calls is highly significant.
+            Note that they induce system CPU time and the cost will not be reflected in user CPU time.
+            If you have performance requirements, please start your investigating improvements here!
+        </p>
+    </li>
+    <li>
+        An expensive and unbalanced malloc is forced, there's no possibility of pooled buffer resources
+            externally.
+
+        <p>
+            The sample function forces a malloc on each call.
+            While malloc/free is not as expensive as an IO system call,
+            it is next with a cost of around 400 CPU ticks.
+            Many-many programs are dominated by malloc overhead for user CPU time.
+        </p>
+
+        <p>
+            This is an unbalanced malloc which is problematic.
+            A standard practice for correctness is to have the malloc and its matching free
+            co-located in the same function or module to avoid memory allocation problems like memory leaks.
+            This sample function forces the user to have a call to free this memory.
+        </p>
+
+        <p>
+            A better solution would be to not malloc internally supply buffer resources to the function call.
+            This has the possibility of zero malloc overhead per response-read call.
+            The buffers can be pooled and allocated once at startup or perhaps elastically on demand.
+            This essentially eliminates malloc overhead for the buffers needed for reading a response.
+        </p>
+    </li>
+</ol>
+
+<h3>Lessons re-learned</h3>
+
+<ol>
+    <li>
+        <b>Check all socket call return values and handle all errors appropriately.</b>
+    </li>
+    <li>
+        <b>Reduce socket calls to a minimum, one per message.</b>
+    </li>
+    <li>
+        <b>Enable pooled (buffer) resources, avoid unnecessary mallocs, especially unbalanced mallocs.</b>
+    </li>
+</ol>
 
 
-    <table>
-        <tr><th>Operation</th><th>Measured-Rounded</th></tr>
-        <tr><td>branch/loop</td><td>0</td></tr>
-        <tr><td>intXor</td><td>0</td></tr>
-        <tr><td>function call</td><td>1</td></tr>
-        <tr><td>fread|fwrite</td><td>50</td></tr>
-        <tr><td>malloc+free</td><td>400</td></tr>
-        <tr><td>read|write</td><td>2,500</td></tr>
-        <tr><td>recv|send</td><td>5,000</td></tr>
-        <tr><td>fork+wait|system</td><td>300,000</td></tr>
-    </table>
+<h2>Graphs</h2>
+    <ul>
+        <li>
+            <a href="call_report_macminimid2011.html">Intel Sandy Bridge 2.3ghz - Mac mini Mid 2011 - Core i5</a>
+            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_macminimid2011.js">call_report_macpromid2010.js</a>
+            </p>
+        </li>
+        <li>
+            <a href="call_report_macpromid2010.html">Intel Westmere 2.7ghz - MacPro Mid 2010 - 2 x 6-Core Xeon</a>
+            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_macpromid2010.js">call_report_macpromid2010.js</a>
+            </p>
+        </li>
+        <li>
+            <a href="call_report_macbookpro17.html">Intel Penryn 3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo</a>
+            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_macbookpro17.js">call_report_macbookpro17.js</a>
+            </p>
+        </li>
+        <li>
+            <a href="call_report_hackintoshcore2quad.html">Intel Merom 2.4ghz - Mac Pro Early 2008 - Core 2 Quad (Hackintosh)</a>
+            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_hackintoshcore2quad.js">call_report_hackintoshcore2quad.js</a>
+        </li>
+    </ul>
 
-    <h2>Graphs</h1>
-    <p><a
-href="call_report_macminimid2011.html">Intel Sandy Bridge
-        2.3ghz - Mac mini Mid 2011 - Core i5</a><br>
-    </p>
-    <p>&nbsp;&nbsp;&nbsp; <a
-href="call_report_macminimid2011.js">call_report_macpromid2010.js</a><br>
-    </p>
-    <p><a
-href="call_report_macpromid2010.html">Intel Westmere
-        2.7ghz - MacPro Mid 2010 - 2 x 6-Core Xeon</a><br>
-    </p>
-    <p>&nbsp;&nbsp;&nbsp; <a
-href="call_report_macpromid2010.js">call_report_macpromid2010.js</a><br>
-    </p>
-    <p><a
-href="call_report_macbookpro17.html">Intel Penryn
-        3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo</a><br>
-    </p>
-    <p>&nbsp;&nbsp;&nbsp; <a
-href="call_report_macbookpro17.js">call_report_macbookpro17.js</a><br>
-    </p>
-    <p>
-      <meta http-equiv="content-type" content="text/html;
-        charset=ISO-8859-1">
-      <a
-href="call_report_hackintoshcore2quad.html">Intel Merom
-        2.4ghz - Mac Pro Early 2008 - Core 2 Quad (Hackintosh)</a><br>
-    </p>
-    <p>&nbsp;&nbsp;&nbsp; <a
-href="call_report_hackintoshcore2quad.js">call_report_hackintoshcore2quad.js</a><br>
-    </p>
-    <h2>Comparison</h1>
-    <p><a
-href="call_report_table.html">Comparison Table</a><br>
-    </p>
-    <p><a
-href="http://www.realworldtech.com/sandy-bridge/4/">Sandy Bridge - Instruction Decode and uop Cache</a><br>
-    </p>
-    <h2>mongo-performance</h1>
-    <p><a
-href="https://github.com/mongodb/mongo-performance/blob/dev/cxx/tests/test_call.cpp">test_call.cpp</a><br>
+<h2>Comparison</h2>
+    <p><a href="call_report_table.html">Comparison Table</a> - includes all processors measured above.
     </p>
 
-  </body>
+    <p><a href="http://www.realworldtech.com/sandy-bridge/4/">Sandy Bridge - Instruction Decode and uop Cache</a>
+        - for some clue about sub-CPU-tick measurements due to micro-ops.
+    </p>
+
+<h2>mongo-performance</h2>
+    <p><a href="https://github.com/mongodb/mongo-performance/blob/dev/cxx/tests/test_call.cpp">test_call.cpp</a>
+    </p>
+
+</body>
 </html>
