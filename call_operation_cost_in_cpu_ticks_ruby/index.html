@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type"/>
+    <title>Ruby Call/Operation Cost in CPU Ticks</title>
+</head>
+<style type="text/css">
+    table, th, td {
+    // border : 1 px solid black;
+    }
+
+    td {
+        width: 120px;
+        margin: 0px 0px;
+        text-align: center
+    }
+</style>
+<body>
+
+<img src="call_ops_graph.png" alt="Call/Operations Cost in CPU Ticks" style="float: right; width: 500px; height: 550px;" title="Please see section 'Graphs' for links to readable graphs">
+
+<h1>Ruby Programming Efficiency Concerns</h1>
+
+<p>
+Ruby is my language of choice for general purpose programming, primarily for its expressive power and clarity.
+But it has a performance cost and raise the following questions.
+</p>
+<ol>
+    <li>What is the performance versus a more efficient object-oriented language like C++?</li>
+    <li>Can we examine Ruby performance and suggest guidelines for improving code efficiency?</li>
+    <li>How do Ruby 2.0.0 (YARV) and JRuby 1.7.3 compare in performance?</li>
+</ol>
+
+<h2>Ruby Call/Operation Cost in CPU Ticks</h2>
+
+<p>
+    These rounded numbers express the relative cost of operations and calls in CPU ticks.
+    Please see the graphs below for actual measured numbers.
+</p>
+
+<table style="background-color: lightyellow;">
+    <tr>
+        <th style="width: 160px;">Operation</th>
+        <th style="width: 160px;">C++ Measured-Rounded</th>
+        <th style="width: 160px;">Ruby 2.0.0 Measured-Rounded</th>
+        <th style="width: 160px;">JRuby 1.7.3 Measured-Rounded</th>
+    </tr>
+    <tr>
+        <td>branch / loop</td>
+        <td>0</td>
+        <td>70-150</td>
+        <td>45-125</td>
+    </tr>
+    <tr>
+        <td>intXor</td>
+        <td>1</td>
+        <td>90</td>
+        <td>45</td>
+    </tr>
+    <tr>
+        <td>function call</td>
+        <td>1</td>
+        <td>95</td>
+        <td>90</td>
+    </tr>
+    <tr>
+        <td>stack object</td>
+        <td>2</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>fread | fwrite</td>
+        <td>50</td>
+        <td>900k-5.4m</td>
+        <td>600k</td>
+    </tr>
+    <tr>
+        <td>malloc + free</td>
+        <td>400</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>new heap object</td>
+        <td>400</td>
+        <td>400-5k</td>
+        <td>125-40k</td>
+    </tr>
+    <tr>
+        <td>read | write</td>
+        <td>2,500</td>
+        <td>10m</td>
+        <td>3m</td>
+    </tr>
+    <tr>
+        <td>recv | send</td>
+        <td>5,000</td>
+    </tr>
+    <tr>
+        <td>fork + wait | system</td>
+        <td>300,000</td>
+    </tr>
+    <tr>
+        <td>map/hash char count</td>
+        <td>65</td>
+        <td>420</td>
+        <td>240</td>
+    </tr>
+    <tr>
+        <td>map/hash int to string</td>
+        <td>1.8k</td>
+        <td>1.1k</td>
+        <td>360</td>
+    </tr>
+</table>
+
+<ol>
+    <li>
+        Common operations like looping, arithmetic, and method call appear to be in the ball-park of 100 instructions,
+        and to have a one to two orders of magnitude cost for Ruby over C++.
+    </li>
+    <li>
+        Socket calls are <em>very expensive</em>  - minimize them to one per message.
+    </li>
+    <li>
+        Mallocs are <em>expensive</em> - minimize them.
+        Resource (buffer) pooling is highly recommended.
+    </li>
+    <li>
+        Heap objects are <em>expensive</em> due to malloc.
+        Use very inexpensive stack objects for performance and automatic memory management.
+    </li>
+    <li>
+        Buffered IO can be a big performance win.
+    </li>
+    <li>
+        Function calls and loops are inexpensive on a modern processor.
+    </li>
+</ol>
+
+<p>
+    Profiling is recommended for performance tuning - see also
+    <a href="http://valgrind.org/docs/manual/cg-manual.html">cachegrind</a>
+    and
+    <a href="http://kcachegrind.sourceforge.net/html/Home.html">kcachegrind</a>.
+</p>
+
+<h2>Graphs</h2>
+<ul>
+    <li>
+       Intel Sandy Bridge 2.3ghz - Mac mini Mid 2011 - Core i5 - <a href="call_report_ruby_macminimid2011.html">Ruby</a> and <a href="call_report_jruby_macminimid2011.html">JRuby</a>
+        <p>&nbsp;&nbsp;&nbsp; JavaScript data - <a href="call_report_ruby_macminimid2011.js">Ruby</a> and <a href="call_report_ruby_macminimid2011.js">JRuby</a>
+        </p>
+    </li>
+    <li>
+        Intel Westmere 2.7ghz - MacPro Mid 2010 - 2 x 6-Core Xeon - <a href="call_report_ruby_macpromid2010.html">Ruby</a> and <a href="call_report_jruby_macpromid2010.html">JRuby</a>
+        <p>&nbsp;&nbsp;&nbsp; JavaScript data - <a href="call_report_ruby_macpromid2010.js">Ruby</a> and <a href="call_report_jruby_macpromid2010.js">JRuby</a>
+        </p>
+    </li>
+    <li>
+        Intel Penryn 3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo - <a href="call_report_ruby_macbookpro17mid2009.html">Ruby</a> and <a href="call_report_jruby_macbookpro17mid2009.html">JRuby</a>
+        <p>&nbsp;&nbsp;&nbsp; JavaScript data - <a href="call_report_ruby_macbookpro17mid2009.js">Ruby</a> and <a href="call_report_jruby_macbookpro17mid2009.js">JRuby</a>
+        </p>
+    </li>
+    <li>
+        Intel Merom 2.4ghz - Mac Pro Early 2008 - Core 2 Quad (Hackintosh) - <a href="call_report_ruby_hackintoshcore2quad.html">Ruby</a> and <a href="call_report_jruby_hackintoshcore2quad.html">JRuby</a>
+        <p>&nbsp;&nbsp;&nbsp; JavaScript data - <a href="call_report_ruby_hackintoshcore2quad.js">Ruby</a> and <a href="call_report_jruby_hackintoshcore2quad.js">JRuby</a>
+    </li>
+</ul>
+
+<p><a href="http://www.realworldtech.com/sandy-bridge/4/">Sandy Bridge - Instruction Decode and uop Cache</a>
+    - for some clue about sub-CPU-tick measurements due to micro-ops.
+</p>
+
+<h2>mongo-performance</h2>
+<p><a href="https://github.com/mongodb/mongo-performance/blob/dev/cxx/tests/test_call.cpp">C++ test_call.cpp</a>
+</p>
+
+<p><a href="https://github.com/mongodb/mongo-performance/blob/dev/ruby/tests/test_call.rb">Ruby test_call.rb</a>
+</p>
+</body>
+</html>
