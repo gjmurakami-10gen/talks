@@ -1,0 +1,163 @@
+[
+  {
+    "title": "FalseClass",
+    "class": "FalseClass",
+    "expression": "false && false",
+    "result_class": "FalseClass",
+    "objects_allocated": 0
+  },
+  {
+    "title": "Fixnum",
+    "class": "Fixnum",
+    "expression": "1 + 2",
+    "result_class": "Fixnum",
+    "objects_allocated": 0
+  },
+  {
+    "title": "Float",
+    "class": "Float",
+    "expression": "1.0 + 2.0",
+    "result_class": "Float",
+    "objects_allocated": 0
+  },
+  {
+    "title": "NilClass",
+    "class": "NilClass",
+    "expression": "nil",
+    "result_class": "NilClass",
+    "objects_allocated": 0
+  },
+  {
+    "title": "Symbol",
+    "class": "Symbol",
+    "expression": ":my_symbol",
+    "result_class": "Symbol",
+    "objects_allocated": 0
+  },
+  {
+    "title": "TrueClass",
+    "class": "TrueClass",
+    "expression": "true && true",
+    "result_class": "TrueClass",
+    "objects_allocated": 0
+  },
+  {
+    "title": "Integer",
+    "class": "Integer",
+    "expression": "1.0 + 2.0",
+    "result_class": "Float",
+    "objects_allocated": 0
+  },
+  {
+    "title": "Array",
+    "class": "Array",
+    "expression": "Array.new",
+    "result_class": "Array",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Bignum",
+    "class": "Bignum",
+    "expression": "1 << 64",
+    "result_class": "Bignum",
+    "objects_allocated": 2
+  },
+  {
+    "title": "Class",
+    "class": "Class",
+    "expression": "Class.new",
+    "result_class": "Class",
+    "objects_allocated": 2
+  },
+  {
+    "title": "Exception",
+    "class": "Exception",
+    "expression": "Exception.new",
+    "result_class": "Exception",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Hash",
+    "class": "Hash",
+    "expression": "Hash.new",
+    "result_class": "Hash",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Method",
+    "class": "Method",
+    "expression": "method(:exit)",
+    "result_class": "Method",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Module",
+    "class": "Module",
+    "expression": "Module.new",
+    "result_class": "Module",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Numeric",
+    "class": "Numeric",
+    "expression": "Numeric.new",
+    "result_class": "Numeric",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Object",
+    "class": "Object",
+    "expression": "Object.new",
+    "result_class": "Object",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Proc",
+    "class": "Proc",
+    "expression": "Proc.new{}",
+    "result_class": "Proc",
+    "objects_allocated": 2
+  },
+  {
+    "title": "Range",
+    "class": "Range",
+    "expression": "Range.new(1,3)",
+    "result_class": "Range",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Regexp",
+    "class": "Regexp",
+    "expression": "Regexp.new(\".\")",
+    "result_class": "Regexp",
+    "objects_allocated": 4
+  },
+  {
+    "title": "String",
+    "class": "String",
+    "expression": "String.new",
+    "result_class": "String",
+    "objects_allocated": 1
+  },
+  {
+    "title": "Struct",
+    "class": "Struct",
+    "expression": "Struct.new(:x)",
+    "result_class": "Class",
+    "objects_allocated": 3
+  },
+  {
+    "title": "Thread",
+    "class": "Thread",
+    "expression": "Thread.new{}",
+    "result_class": "Thread",
+    "objects_allocated": 7
+  },
+  {
+    "title": "Time",
+    "class": "Time",
+    "expression": "Time.new",
+    "result_class": "Time",
+    "objects_allocated": 1
+  }
+]
