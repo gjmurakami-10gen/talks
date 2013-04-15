@@ -49,11 +49,19 @@ Please see the graphs below for actual measured numbers.
         <td>1</td>
     </tr>
     <tr>
+        <td>stack object</td>
+        <td>2</td>
+    </tr>
+    <tr>
         <td>fread | fwrite</td>
         <td>50</td>
     </tr>
     <tr>
         <td>malloc + free</td>
+        <td>400</td>
+    </tr>
+    <tr>
+        <td>new heap object</td>
         <td>400</td>
     </tr>
     <tr>
@@ -83,7 +91,11 @@ Please see the graphs below for actual measured numbers.
         Resource (buffer) pooling is highly recommended.
     </li>
     <li>
-        Buffered IO can be a big win.
+        Heap objects are <em>expensive</em> due to malloc.
+        Use very inexpensive stack objects for performance and automatic memory management.
+    </li>
+    <li>
+        Buffered IO can be a big performance win.
     </li>
     <li>
         Function calls and loops are inexpensive on a modern processor.
@@ -211,8 +223,8 @@ and
             </p>
         </li>
         <li>
-            <a href="call_report_macbookpro17.html">Intel Penryn 3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo</a>
-            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_macbookpro17.js">call_report_macbookpro17.js</a>
+            <a href="call_report_macbookpro17mid2009.html">Intel Penryn 3.1ghz - MacBook Pro 17-inch Mid 2009 - Core 2 Duo</a>
+            <p>&nbsp;&nbsp;&nbsp; <a href="call_report_macbookpro17mid2009.js">call_report_macbookpro17mid2009.js</a>
             </p>
         </li>
         <li>
