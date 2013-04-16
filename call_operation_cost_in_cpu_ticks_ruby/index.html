@@ -31,21 +31,20 @@
 
 <img src="call_ops_graph.png" alt="Call/Operations Cost in CPU Ticks" style="float: right; width: 500px; height: 500px;" title="Please see section 'Graphs' for links to readable graphs">
 
-<h1>Ruby Programming Efficiency Concerns</h1>
+<h1>Ruby Call/Operation Cost in CPU Ticks</h1>
 
 <p>
 Ruby is my language of choice for general purpose programming, for its expressive power and clarity.
 The dynamic and generic object structure of Ruby makes it a good match for BSON and MongoDB,
-likewise Python, Perl, JavaScript, etc.
+likewise of Python, Perl, JavaScript, etc.
 But the following questions are raised.
 </p>
+
 <ol>
     <li>What is the cost for Ruby with dynamic object data structures versus C++ with static structures?</li>
-    <li>JRuby has improved performance. How do Ruby (2.0.0 YARV) and JRuby (1.7.3) compare?</li>
+    <li>JRuby has improved performance. How do Ruby 2.0.0 YARV and JRuby 1.7.3 compare?</li>
     <li>How do we improve real-world performance?</li>
 </ol>
-
-<h2>Ruby Call/Operation Cost in CPU Ticks</h2>
 
 <p>
     These rounded numbers express the relative cost of operations and calls in CPU ticks.
@@ -190,9 +189,11 @@ But the following questions are raised.
 
 <h2>Expressions, New Objects, and Allocation</h2>
 
+<p>
 Various expressions were measured for object allocation by disabling the garbage collector (GC), collecting GC stats,
 running a repeated test expression, enabling and running GC, collecting GC stats again, calculating the difference
 and the objects allocated per iteration of the expression.
+</p>
 
 <table style="background-color: lavender">
     <tr>
