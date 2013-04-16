@@ -26,7 +26,7 @@
 
         function human(n) {
             var s = ['', 'k', 'm', 'g', 't', 'p'];
-            var e = Math.floor(Math.log(n) / Math.log(1000))
+            var e = Math.floor(Math.log(n) / Math.log(1000));
             return (e >= 0) ? (n / Math.pow(1000, e)).toFixed(1) + s[e] : n.toFixed(1);
         }
 
@@ -74,7 +74,7 @@
                 plotData,
                 {
                     xaxis: {
-                        ticks: [1, 10, 100, 1000, 10000, 100000, 100000, 1000000],
+                        ticks: [1, 10, 100, 1000, 10000, 100000],
                         transform: function (v) {
                             return Math.log(v + 0.0001);
                             /*move away from zero*/
@@ -83,7 +83,7 @@
                             return Math.exp(v);
                         },
                         min: xmin,
-                        max: 10000000,
+                        max: 1000000,
                         tickDecimals: 0
                     },
                     yaxis: {
