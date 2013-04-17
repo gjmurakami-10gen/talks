@@ -173,10 +173,10 @@ But the following questions are raised.
         JRuby shows significant performance benefit over Ruby 2.0 even with the perfomance improvements from YARV
         as evident in these measurements.
         Especially note the reduced cost for a new heap object and see below for more detail.
-        Java 7 brings with it an important new feature called invokedynamic,
+        Java 7 brings with it an important new feature called <i>invokedynamic</i>,
         which greatly improves JRuby's performance on VMs that support it.
-        However, the use of invokedynamic is off by default on Java 7.
-        Measurements with invokedynamic are pending.
+        However, the use of <i>invokedynamic</i> is off by default on Java 7.
+        Measurements with <i>invokedynamic</i> are pending.
     </li>
     <li>
         For real-world performance, the answer is still the same.
@@ -187,7 +187,21 @@ But the following questions are raised.
     </li>
 </ol>
 
-<h2>Expressions, New Objects, and Allocation</h2>
+<p>
+Here's the link to C/C++ <a href="../call_operation_cost_in_cpu_ticks/index.html">Call/Operation Cost in CPU Ticks</a>
+measurements, analysis, and notes.
+</p>
+
+<p>
+Note: C++ STL <i>map</i> is traditionally an ordered tree-based map,
+while <i>hash_map</i> and <i>unordered_map</i> are hash-based maps.
+In these tests, I used <i>map</i> because it has been official STL for a long time,
+as <i>hash_map</i> is not official and <i>unordered_map</i> is more recent than G++ 4.2.
+Also, <i>hash_map</i> requires the programmer to supply an additional include, namespace, and a hash function,
+and the simple hash function using <i>string::c_str()</i> is not efficient.
+</p>
+
+<h2>Expressions, New Objects, and Allocation - Ruby VALUE Immediate Objects</h2>
 
 <p>
 Various expressions were measured for object allocation by disabling the garbage collector (GC), collecting GC stats,
