@@ -2,7 +2,7 @@ ruby_class_allocation = [
   {
     "title": "FalseClass",
     "class": "FalseClass",
-    "expression": "false && false",
+    "expression": "false || false",
     "result_class": "FalseClass",
     "objects_allocated": 0
   },

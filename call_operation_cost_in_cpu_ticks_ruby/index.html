@@ -52,7 +52,7 @@ But the following questions are raised.
     The following are from the Intel Sandy Bridge numbers (Mac mini mid 2011).
 </p>
 
-<table style="width: 600px; background-color: lightyellow;">
+<table style="padding: 10px; width: 600px; background-color: lightyellow;">
     <tr>
         <th style="width: 150px;">Operation</th>
         <th style="width: 150px;">C++ <br>Measured-Rounded</th>
@@ -140,7 +140,7 @@ But the following questions are raised.
     <tr>
         <td>map/hash int to string</td>
         <td>1,400</td>
-        <td>1.1k</td>
+        <td>1,100</td>
         <td>410</td>
     </tr>
 </table>
@@ -195,7 +195,7 @@ running a repeated test expression, enabling and running GC, collecting GC stats
 and the objects allocated per iteration of the expression.
 </p>
 
-<table style="background-color: lavender">
+<table style="padding: 10px; background-color: lavender">
     <tr>
         <th>Object Class</th>
         <th>Expression</th>
@@ -203,7 +203,7 @@ and the objects allocated per iteration of the expression.
     </tr>
     <tr>
         <td>FalseClass</td>
-        <td>false && false</td>
+        <td>false || false</td>
         <td>0</td>
     </tr>
     <tr>
